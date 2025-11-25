@@ -1,7 +1,5 @@
 {
-	"compileOnSave": true,
 	"compilerOptions": {
-		"target": "ESNext",
 		"useDefineForClassFields": true,
 		"module": "ESNext",
 		"lib": ["ESNext", "DOM"],
@@ -12,10 +10,14 @@
 		"isolatedModules": true,
 		"esModuleInterop": true,
 		"noEmit": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
 		"noImplicitReturns": false,
 		"skipLibCheck": true,
-		"baseUrl": "./packages"
-	}
+		"baseUrl": "./packages",
+		"paths": {
+			"hostConfig": ["./react-dom/src/hostConfig.ts"]
+		}
+	},
+	"include": ["packages/**/*"]
 }

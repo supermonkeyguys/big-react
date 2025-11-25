@@ -6,11 +6,11 @@ import prettierConfig from "eslint-config-prettier";
 
 export default [
   {
-    env: { browser: true, es2021: true, node: true },
+    env: { browser: true, es2021: true, node: true, jest: true },
     ignores: ["**/*.js", "**/*.cjs", "**/*.mjs", "node_modules/**"],
   },
   {
-    files: ["**/*.ts", "**/*.tsx"],
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"],
     languageOptions: {
       parser: tsParser,
       parserOptions: { ecmaVersion: "latest", sourceType: "module" },

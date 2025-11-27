@@ -199,7 +199,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
                         return updateFragment(
                             returnFiber,
                             before,
-                            element,
+                            element.props.children,
                             KeyToUse,
                             existingChildren
                         )
@@ -237,7 +237,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
         const isUnKeyTopLevelFragment =
             typeof newChild === 'object' &&
             newChild !== null &&
-            newChild.$$type === REACT_ELEMENT_TYPE &&
+            newChild.$$typeof === REACT_ELEMENT_TYPE &&
             newChild.type === REACT_FRAGMENT_TYPE &&   
             newChild.key === null
 

@@ -1,15 +1,22 @@
-const { defaults } = require('jest-config')
-
+const { defaults } = require('jest-config');
 
 module.exports = {
     ...defaults,
     rootDir: process.cwd(),
     modulePathIgnorePatterns: ['<rootDir>/.history'],
     moduleDirectories: [
-        // 对于 React ReactDOM
-        'dist/node_modules',
-        // 对于第三方依赖
-        ...defaults.moduleDirectories
+        ...defaults.moduleDirectories,
+        'dist/node_modules'
     ],
-    testEnvironment: 'jsdom'
-}
+    testEnvironment: 'jsdom',
+    moduleNameMapper: {
+        '^scheduler$': '<rootDir>/node_modules/scheduler/unstable_mock.js',
+        '^jest-react$': '<rootDir>/scripts/jest/jest-react.js',
+        '^scheduler$': '<rootDir>/scripts/jest/scheduler.js',
+    },
+    fakeTimers: {
+        enableGlobally: true,
+        legacyFakeTimers: true
+    },
+    setupFilesAfterEnv: ['./scripts/jest/setupJest.js']
+};

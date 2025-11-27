@@ -12,6 +12,7 @@ let ReactDOM;
 let ReactTestUtils;
 describe('ReactElement', () => {
     let ComponentFC;
+    let ReactDOM;
     let originalSymbol;
     beforeEach(() => {
         jest.resetModules();

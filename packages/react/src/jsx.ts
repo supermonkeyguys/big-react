@@ -25,7 +25,7 @@ export function isValidElement(object: any) {
 
 export const jsx = (type: ElementType, config: any, ...maybeChildren: any) => {
     let key: Key = null
-    let props: Props = {}
+    const props: Props = {}
     let ref: Ref = null
 
     for (const prop in config) {
@@ -65,7 +65,7 @@ export const Fragment = REACT_FRAGMENT_TYPE
 
 export const jsxDEV = (type: ElementType, config: any) => {
     let key: Key = null
-    let props: Props = {}
+    const props: Props = {}
     let ref: Ref = null
 
     for (const prop in config) {

@@ -1,9 +1,7 @@
-import { appendInitialChild, Container, createInstance, createTextInstance } from "hostConfig";
+import { appendInitialChild, Container, createInstance, createTextInstance, Instance } from "hostConfig";
 import { FiberNode } from "./fiber";
 import { NoFlags, Update } from "./fiberFlags";
 import { Fragment, FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
-import { updateFiberProps } from "react-dom/src/SyntheticEvent";
-
 
 function markUpdate(fiber: FiberNode) {
     fiber.flags |= Update
@@ -22,7 +20,7 @@ export const completeWork = (wip: FiberNode) => {
                 // props 是否变
                 // className style
                 // 变: Update flag
-                updateFiberProps(wip.stateNode, newProps)
+                markUpdate(wip)
             } else {
                 // mount
                 // 构建 DOM
@@ -59,7 +57,7 @@ export const completeWork = (wip: FiberNode) => {
 
 }
 
-function appendAllChild(parent: Container, wip: FiberNode) {
+function appendAllChild(parent: Container | Instance, wip: FiberNode) {
     let node = wip.child as FiberNode
 
     while (node !== null) {

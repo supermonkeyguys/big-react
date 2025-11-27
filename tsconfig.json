@@ -19,5 +19,5 @@
 			"hostConfig": ["./react-dom/src/hostConfig.ts"]
 		}
 	},
-	"include": ["packages/**/*"]
+	"include": ["./packages/**/*"]
 }

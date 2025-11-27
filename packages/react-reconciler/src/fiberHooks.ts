@@ -1,7 +1,7 @@
 import internals from "shared/internals";
 import { FiberNode } from "./fiber";
 import { Dispatch, Dispatcher } from "react/src/currentDispatcher";
-import { createUpdate, createUpdateQueue, enqueueUpdate, processUpdateQueue, UpdateQueue } from "./updateQueue";
+import { createUpdate, createUpdateQueue, enqueueUpdate, processUpdateQueue, Update, UpdateQueue } from "./updateQueue";
 import { Action } from "shared/ReactTypes";
 import { scheduleUpdateOnFiber } from "./workLoop";
 import { Lane, NoLane, requestUpdateLane } from "./fiberLanes";
@@ -20,6 +20,8 @@ export interface Hook {
     memoizedState: any; // 保存 state 的值
     updateQueue: unknown; // 保存 update 队列
     next: Hook | null; // 指向下一个 Hook
+    baseState: any;
+    baseQueue: Update<any> | null
 }
 
 export interface Effect {
@@ -101,6 +103,7 @@ function updateEffect(
                 return
             }
         }
+        // 浅比较不相等
         (currentlyRenderingFiber as FiberNode).flags |= PassiveEffect
         hook.memoizedState = pushEffect(
             Passive | HookHasEffect,
@@ -134,7 +137,7 @@ function mountEffect(
     const hook = mountWorkInProgressHook()
     const nextDeps = deps === undefined ? null : deps;
     (currentlyRenderingFiber as FiberNode).flags |= PassiveEffect
-    
+
     hook.memoizedState = pushEffect(
         Passive | HookHasEffect,
         create,
@@ -219,7 +222,9 @@ function updateWorkInProgressHook(): Hook {
     const newHook: Hook = {
         memoizedState: currentHook.memoizedState,
         updateQueue: currentHook.updateQueue,
-        next: null
+        next: null,
+        baseState: currentHook.baseState,
+        baseQueue: currentHook.baseQueue,
     }
 
     if (workInprogressHook === null) {
@@ -269,11 +274,33 @@ function updateState<State>(): [State, Dispatch<State>] {
 
     // 2. 计算新 state 的逻辑
     const queue = hook.updateQueue as UpdateQueue<State>
+    const baseState = hook.baseState
+
     const pending = queue.shared.pending
-    queue.shared.pending = null
+    const current = currentHook as Hook
+    let baseQueue = hook.baseQueue
+
     if (pending !== null) {
-        const { memoizedState } = processUpdateQueue(hook.memoizedState, pending, renderLane)
+        // pending baseQueue update 保存在 current 中
+        if (baseQueue !== null) {
+            const baseFirst = baseQueue.next
+            const pendingFirst = pending.next
+
+            baseQueue.next = pendingFirst
+            pending.next = baseFirst
+        }
+        baseQueue = pending
+        current.baseQueue = pending
+        queue.shared.pending = null
+
+        const { memoizedState, baseState: newBaseState, baseQueue: newBaseQueue } = processUpdateQueue(
+            baseState,
+            baseQueue,
+            renderLane
+        )
         hook.memoizedState = memoizedState
+        hook.baseState = newBaseState
+        hook.baseQueue = newBaseQueue
     }
 
     return [hook.memoizedState, queue.dispatch as Dispatch<State>];
@@ -297,7 +324,9 @@ function mountWorkInProgressHook(): Hook {
     const hook: Hook = {
         memoizedState: null,
         updateQueue: null,
-        next: null
+        next: null,
+        baseState: null,
+        baseQueue: null,
     };
 
     if (workInprogressHook === null) {

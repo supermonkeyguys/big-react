@@ -64,10 +64,16 @@ function ensureRootIsScheduler(root: FiberRootNode) {
     }
     let newCallbackNode = null
 
+    if (__DEV__) {
+        console.log(
+            `在${updateLane === SyncLane ? '微' : '宏'}任务中调度，优先级：`,
+            updateLane
+        );
+    }
+
 
     if (updateLane === SyncLane) {
         // 同步优先级 用微任务调度
-        if (__DEV__) console.warn('在微任务中调度, 优先级：', updateLane)
         scheduleSyncCallback(performSyncWorkRoot.bind(null, root))
         scheduleMicroTask(flushSyncCallbacks)
     } else {
@@ -105,7 +111,7 @@ function performConcurrentWorkOnRoot(root: FiberRootNode, didTimeout?: boolean):
     const curCallback = root.callbackNode
     const didFlushPassiveEffect = flushPassiveEffects(root.pendingPassiveEffects)
     if (didFlushPassiveEffect) {
-        if(root.callbackNode !== curCallback) {
+        if (root.callbackNode !== curCallback) {
             return null
         }
     }

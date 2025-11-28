@@ -1,3 +1,4 @@
+import currentBatchConfig from "./src/currentBatchConfig";
 import currentDispatcher, { Dispatcher, resolveDispatcher } from "./src/currentDispatcher";
 import { isValidElement as isValidElementFn, jsx } from "./src/jsx";
 
@@ -10,12 +11,19 @@ export const useEffect: Dispatcher['useEffect'] = (create, deps) => {
     return dispatcher.useEffect(create, deps)
 }
 
+export const useTransition: Dispatcher['useTransition'] = () => {
+    const dispatcher = resolveDispatcher()
+    return dispatcher.useTransition()   
+}
+
 // 内部数据共享层
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
-    currentDispatcher
+    currentDispatcher,
+    currentBatchConfig
 }
 
 export const version = '0.0.0'
+
 // TODO 根据生产环境判断使用 jsx 或 jsxDev
 export const createElement = jsx
 export const isValidElement = isValidElementFn

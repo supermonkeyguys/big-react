@@ -1,13 +1,11 @@
+import React from 'react';
 import ReactDOM from 'react-dom';
-
 import { useState, useTransition } from 'react';
-
 import ContactTab from './ContactTab';
-import './style.css';
 import TabButton from './TabButton';
 import AboutTab from './About';
 import PostsTab from './PostsTab';
-import React from 'react';
+import './style.css';
 
 function App() {
 	const [isPending, startTransition] = useTransition();

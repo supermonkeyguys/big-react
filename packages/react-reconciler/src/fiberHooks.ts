@@ -7,6 +7,7 @@ import { scheduleUpdateOnFiber } from "./workLoop";
 import { Lane, NoLane, requestUpdateLane } from "./fiberLanes";
 import { Flags, PassiveEffect } from "./fiberFlags";
 import { HookHasEffect, Passive } from "./hookEffectTags";
+import currentBatchConfig from "react/src/currentBatchConfig";
 
 // 全局指针
 let currentlyRenderingFiber: FiberNode | null = null;
@@ -75,12 +76,14 @@ export function renderWithHooks(wip: FiberNode, lane: Lane) {
 
 const HooksDispatcherOnMount: Dispatcher = {
     useState: mountState,
-    useEffect: mountEffect
+    useEffect: mountEffect,
+    useTransition: mountTransition,
 };
 
 const HooksDispatcherOnUpdate: Dispatcher = {
     useState: updateState,
-    useEffect: updateEffect
+    useEffect: updateEffect,
+    useTransition: updateTransition
 }
 
 function updateEffect(
@@ -258,6 +261,7 @@ function mountState<State>(initialState: (() => State) | State): [State, Dispatc
     const queue = createUpdateQueue<State>();
     hook.updateQueue = queue;
     hook.memoizedState = memoizedState
+    hook.baseState = memoizedState
 
     // 5. 创建 dispatch (setXXX)
     // 使用 bind 预先绑定 fiber 和 queue，这样用户调用时只需要传 action
@@ -304,6 +308,32 @@ function updateState<State>(): [State, Dispatch<State>] {
     }
 
     return [hook.memoizedState, queue.dispatch as Dispatch<State>];
+}
+
+function mountTransition(): [boolean, (callback: () => void) => void] {
+    const [isPending, setPending] = mountState(false)
+    const hook = mountWorkInProgressHook()
+    const start = startTransition.bind(null, setPending)
+    hook.memoizedState = start
+    return [isPending, start]
+}
+
+function updateTransition(): [boolean, (callback: () => void) => void] {
+    const [isPending] = updateState()
+    const hook = updateWorkInProgressHook()
+    const start = hook.memoizedState
+    return [isPending as boolean,start]
+}
+
+function startTransition(setPending: Dispatch<boolean>, callback: () => void) {
+    setPending(true)
+    const prevTransition = currentBatchConfig.transition
+    currentBatchConfig.transition = 1
+
+    callback()
+    setPending(false)
+
+    currentBatchConfig.transition = prevTransition
 }
 
 function dispatchSetState<State>(

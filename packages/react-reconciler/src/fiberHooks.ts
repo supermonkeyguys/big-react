@@ -2,7 +2,7 @@ import internals from "shared/internals";
 import { FiberNode } from "./fiber";
 import { Dispatch, Dispatcher } from "react/src/currentDispatcher";
 import { createUpdate, createUpdateQueue, enqueueUpdate, processUpdateQueue, Update, UpdateQueue } from "./updateQueue";
-import { Action } from "shared/ReactTypes";
+import { Action, ReactContext } from "shared/ReactTypes";
 import { scheduleUpdateOnFiber } from "./workLoop";
 import { Lane, NoLane, requestUpdateLane } from "./fiberLanes";
 import { Flags, PassiveEffect } from "./fiberFlags";
@@ -78,12 +78,25 @@ const HooksDispatcherOnMount: Dispatcher = {
     useState: mountState,
     useEffect: mountEffect,
     useTransition: mountTransition,
+    useRef: mountRef,
+    useContext: readContext,
 };
 
 const HooksDispatcherOnUpdate: Dispatcher = {
     useState: updateState,
     useEffect: updateEffect,
-    useTransition: updateTransition
+    useTransition: updateTransition,
+    useRef: updateRef,
+    useContext: readContext,
+}
+
+function readContext<T>(context: ReactContext<T>) {
+        const consumer = currentlyRenderingFiber
+        if(consumer ===  null) {
+            throw new Error('context需要有consumer')
+        }
+        const value = context._currentValue
+        return value
 }
 
 function updateEffect(
@@ -336,6 +349,18 @@ function startTransition(setPending: Dispatch<boolean>, callback: () => void) {
     setPending(false)
 
     currentBatchConfig.transition = prevTransition
+}
+
+function mountRef<T>(initialValue: T): { current: T } {
+    const hook = mountWorkInProgressHook()
+    const ref = { current: initialValue }
+    hook.memoizedState = ref
+    return ref
+}
+
+function updateRef<T>(initialValue: T): { current: T } {
+    const hook = updateWorkInProgressHook()
+    return hook.memoizedState
 }
 
 function dispatchSetState<State>(

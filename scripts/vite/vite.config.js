@@ -21,7 +21,7 @@ export default defineConfig({
       },
       {
         find: 'react-dom',
-        replacement: resolvePkgPath('react-dom', 'index.ts')
+        replacement: resolvePkgPath('react-dom')
       },
       {
         find: 'react-reconciler',

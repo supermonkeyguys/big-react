@@ -1,10 +1,11 @@
 import { Key, Props, ReactElementType, Ref } from "shared/ReactTypes"
-import { Fragment, FunctionComponent, HostComponent, WorkTag } from "./workTags"
+import { ContextProvider, Fragment, FunctionComponent, HostComponent, WorkTag } from "./workTags"
 import { Flags, NoFlags } from "./fiberFlags"
 import { Container } from "hostConfig"
 import { Lane, Lanes, NoLane, NoLanes } from "./fiberLanes"
 import { Effect } from "./fiberHooks"
 import { CallbackNode } from "scheduler"
+import { REACT_PROVIDER_TYPE } from "shared/ReactSymbols"
 
 
 export class FiberNode {
@@ -27,6 +28,8 @@ export class FiberNode {
     updateQueue: unknown
     subtreeFlags: Flags
     deletions: FiberNode[] | null
+    lanes: Lanes
+    childrenLanes: Lanes
 
     constructor(tag: WorkTag, pendingProps: Props, key: Key) {
         // 实例
@@ -56,6 +59,9 @@ export class FiberNode {
         this.flags = NoFlags
         this.subtreeFlags = NoFlags
         this.deletions = null
+
+        this.lanes = NoLanes
+        this.childrenLanes = NoLanes
     }
 }
 
@@ -117,23 +123,30 @@ export const createWorkInProgress = (current: FiberNode, pendingProps: Props): F
 
     wip.memoizedProps = current.memoizedProps
     wip.memoizedState = current.memoizedState
+    wip.ref = current.ref
 
     return wip
 }
 
 
 export function createFiberFromElement(element: ReactElementType) {
-    const { type, key, props } = element
+    const { type, key, props, ref } = element
     let fiberTag: WorkTag = FunctionComponent
 
     if (typeof type === 'string') {
         fiberTag = HostComponent
+    } else if (
+        typeof type === 'object' &&
+        type.$$typeof === REACT_PROVIDER_TYPE
+    ) {
+        fiberTag = ContextProvider
     } else if (typeof type !== 'function' && __DEV__) {
         console.warn('未定义的type类型', element)
     }
 
     const fiber = new FiberNode(fiberTag, props, key)
     fiber.type = type
+    fiber.ref = ref
 
     return fiber
 }

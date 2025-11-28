@@ -1,7 +1,9 @@
 import { appendInitialChild, Container, createInstance, createTextInstance, Instance } from "hostConfig";
 import { FiberNode } from "./fiber";
-import { NoFlags, Update } from "./fiberFlags";
-import { Fragment, FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
+import { NoFlags, Ref, Update } from "./fiberFlags";
+import { ContextProvider, Fragment, FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
+import { updateFiberProps } from "react-dom/src/SyntheticEvent";
+import { popProvider } from "./fiberContext";
 
 function markUpdate(fiber: FiberNode) {
     fiber.flags |= Update
@@ -19,7 +21,11 @@ export const completeWork = (wip: FiberNode) => {
                 // props 是否变
                 // className style
                 // 变: Update flag
-                markUpdate(wip)
+                // markUpdate(wip)
+                updateFiberProps(wip.stateNode, newProps)
+                if (current.ref !== wip.ref) {
+                    markRef(wip)
+                }
             } else {
                 // mount
                 // 构建 DOM
@@ -27,6 +33,10 @@ export const completeWork = (wip: FiberNode) => {
                 // 将 DOM 插入到 DOM 树中
                 appendAllChild(instance, wip)
                 wip.stateNode = instance
+                // 标记 Ref
+                if (wip.ref !== null) {
+                    markRef(wip)
+                }
             }
             bubbleProperties(wip)
             return null
@@ -50,10 +60,18 @@ export const completeWork = (wip: FiberNode) => {
         case FunctionComponent:
             bubbleProperties(wip)
             return null
+        case ContextProvider:
+            const context = wip.type._context
+            popProvider(context)
+            bubbleProperties(wip)
         default:
             return null
     }
 
+}
+
+function markRef(fiber: FiberNode) {
+    fiber.flags |= Ref
 }
 
 function appendAllChild(parent: Container | Instance, wip: FiberNode) {

@@ -1,47 +1,33 @@
-import ReactDOM from 'react-dom';
+import React from 'react'
+import { createContext, useContext } from 'react';
+import ReactDOM from 'react-dom/client';
 
-import { useState, useTransition } from 'react';
-
-import ContactTab from './ContactTab';
-import './style.css';
-import TabButton from './TabButton';
-import AboutTab from './About';
-import PostsTab from './PostsTab';
-import React from 'react';
+const ctxA = createContext('default A');
+const ctxB = createContext('default B');
 
 function App() {
-	const [isPending, startTransition] = useTransition();
-	const [tab, setTab] = useState('about');
-	console.log('hello');
-	function selectTab(nextTab) {
-		startTransition(() => {
-			setTab(nextTab);
-		});
-	}
-
 	return (
-		<>
-			<TabButton isActive={tab === 'about'} onClick={() => selectTab('about')}>
-				首页
-			</TabButton>
-			<TabButton isActive={tab === 'posts'} onClick={() => selectTab('posts')}>
-				博客 (render慢)
-			</TabButton>
-			<TabButton
-				isActive={tab === 'contact'}
-				onClick={() => selectTab('contact')}
-			>
-				联系我
-			</TabButton>
-			<hr />
-			{tab === 'about' && <AboutTab />}
-			{tab === 'posts' && <PostsTab />}
-			{tab === 'contact' && <ContactTab />}
-		</>
+		<ctxA.Provider value={'A0'}>
+			<ctxB.Provider value={'B0'}>
+				<ctxA.Provider value={'A1'}>
+					<Cpn />
+				</ctxA.Provider>
+			</ctxB.Provider>
+			<Cpn />
+		</ctxA.Provider>
 	);
 }
 
+function Cpn() {
+	const a = useContext(ctxA);
+	const b = useContext(ctxB);
+	return (
+		<div>
+			A: {a} B: {b}
+		</div>
+	);
+}
 
-const root = ReactDOM.createRoot(document.querySelector('#root'));
-
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+	<App />
+);

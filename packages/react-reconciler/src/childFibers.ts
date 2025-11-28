@@ -171,6 +171,18 @@ function ChildReconciler(shouldTrackEffects: boolean) {
         return firstNewFiber
     }
 
+    function getElementKeyToUse(element: any, index?: number): Key {
+        if(
+            Array.isArray(element) ||
+            typeof element === 'string' || 
+            typeof element === 'number' ||
+            element === null ||
+            element === undefined
+        ) {
+            return index
+        }
+    }
+
     function updateFromMap(
         returnFiber: FiberNode,
         existingChildren: ExistingChildren,

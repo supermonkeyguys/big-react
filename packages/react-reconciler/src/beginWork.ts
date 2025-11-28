@@ -1,10 +1,12 @@
 import { ReactElementType } from "shared/ReactTypes";
 import { FiberNode } from "./fiber";
 import { processUpdateQueue, UpdateQueue } from "./updateQueue";
-import { Fragment, FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
+import { ContextProvider, Fragment, FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
 import { mountChildFibers, reconcilerChildFibers } from "./childFibers";
 import { renderWithHooks } from "./fiberHooks";
 import { Lane } from "./fiberLanes";
+import { Ref } from "./fiberFlags";
+import { pushProvider } from "./fiberContext";
 
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
     switch (wip.tag) {
@@ -19,6 +21,8 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
             return null
         case Fragment:
             return updateFragment(wip)
+        case ContextProvider:
+            return updateContextProvider(wip)
         default:
             if (__DEV__) {
                 console.warn('beginWork 未实现该类')
@@ -57,6 +61,7 @@ function updateHostRoot(wip: FiberNode, renderLane: Lane) {
 function updateHostComponent(wip: FiberNode) {
     const nextProps = wip.pendingProps
     const nextChildren = nextProps.children
+    markRef(wip.alternate, wip)
     reconcilerChildren(wip, nextChildren)
     return wip.child
 }
@@ -70,4 +75,42 @@ function reconcilerChildren(wip: FiberNode, children?: ReactElementType) {
     } else {
         wip.child = mountChildFibers(wip, null, children)
     }
+}
+
+function markRef(current: FiberNode | null, workInProgress: FiberNode) {
+    const ref = workInProgress.ref
+
+    if (
+        (current === null && ref !== null) ||
+        (current !== null && current.ref !== ref)
+    ) {
+        workInProgress.flags |= Ref
+    }
+}
+
+function updateContextProvider(wip: FiberNode) {
+    const providerType = wip.type
+    const context = providerType._context
+    const oldProps = wip.memoizedProps
+    const newProps = wip.pendingProps
+    const newValue = newProps.value
+
+    if(__DEV__ && !('value' in newProps)) {
+        console.warn('<Context.Provider>需要传递value props')
+    }
+
+    if(oldProps !== null) {
+        if(newValue !== oldProps.value) {
+                // TODO
+                // context.value 变化
+                // 从Provider向下DFS, 寻找消费了当前变化的 context 的 consumer
+                // 如果找到 consumer, 从 consumer 向上遍历到 Provider
+                // 标记沿途组件存在更新
+        }
+    }
+
+    pushProvider(context,newValue)
+    const nextChildren = newProps.children
+    reconcilerChildren(wip, nextChildren)
+    return wip.child
 }

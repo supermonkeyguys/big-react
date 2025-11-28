@@ -1,6 +1,9 @@
+import { ReactContext } from "shared/ReactTypes";
 import currentBatchConfig from "./src/currentBatchConfig";
 import currentDispatcher, { Dispatcher, resolveDispatcher } from "./src/currentDispatcher";
 import { isValidElement as isValidElementFn, jsx } from "./src/jsx";
+
+export { createContext } from './src/context'
 
 export const useState: Dispatcher['useState'] = (initialState) => {
     const dispatcher = resolveDispatcher()
@@ -14,6 +17,18 @@ export const useEffect: Dispatcher['useEffect'] = (create, deps) => {
 export const useTransition: Dispatcher['useTransition'] = () => {
     const dispatcher = resolveDispatcher()
     return dispatcher.useTransition()   
+}
+
+export const useRef:Dispatcher['useRef'] = (initialValue) => {
+    const dispatcher = resolveDispatcher() as Dispatcher
+    return dispatcher.useRef(initialValue)
+}
+
+export const useContext:Dispatcher['useContext'] = <T>(
+    context: ReactContext<T>
+) => {
+    const dispatcher = resolveDispatcher() as Dispatcher
+    return dispatcher.useContext(context) 
 }
 
 // 内部数据共享层

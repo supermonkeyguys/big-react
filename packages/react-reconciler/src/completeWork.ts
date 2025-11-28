@@ -7,7 +7,6 @@ function markUpdate(fiber: FiberNode) {
     fiber.flags |= Update
 }
 
-
 export const completeWork = (wip: FiberNode) => {
 
     const newProps = wip.pendingProps

@@ -193,6 +193,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
                 console.log('workLoopSync发生错误', e)
             }
             workInProgress = null
+            throw e
         }
     } while (true)
 

@@ -296,7 +296,9 @@ function updateState<State>(): [State, Dispatch<State>] {
         baseQueue = pending
         current.baseQueue = pending
         queue.shared.pending = null
+    }
 
+    if (baseQueue !== null) {
         const { memoizedState, baseState: newBaseState, baseQueue: newBaseQueue } = processUpdateQueue(
             baseState,
             baseQueue,
@@ -322,7 +324,7 @@ function updateTransition(): [boolean, (callback: () => void) => void] {
     const [isPending] = updateState()
     const hook = updateWorkInProgressHook()
     const start = hook.memoizedState
-    return [isPending as boolean,start]
+    return [isPending as boolean, start]
 }
 
 function startTransition(setPending: Dispatch<boolean>, callback: () => void) {

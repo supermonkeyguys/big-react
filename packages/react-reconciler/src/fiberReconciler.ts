@@ -16,14 +16,15 @@ export function createContainer(container: Container) {
 }
 
 export function updateContainer(element: ReactElementType | null, root: FiberRootNode) {
-    unstable_runWithPriority(unstable_ImmediatePriority,() => {
-        const hostRootFiber = root.current
-        const lane = requestUpdateLane()
-        const update = createUpdate<ReactElementType | null>(element,lane)
-        enqueueUpdate(
-            hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
-            update 
-        ) 
-    })
+    unstable_runWithPriority(unstable_ImmediatePriority, () => {
+		const hostRootFiber = root.current;
+		const lane = requestUpdateLane();
+		const update = createUpdate<ReactElementType | null>(element, lane);
+		enqueueUpdate(
+			hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
+			update
+		);
+		scheduleUpdateOnFiber(hostRootFiber, lane);
+	})
     return element
 } 

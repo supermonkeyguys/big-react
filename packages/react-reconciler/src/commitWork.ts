@@ -1,6 +1,6 @@
 import { appendChildToContainer, commitUpdate, Container, insertChildToContainer, Instance, removeChild } from "hostConfig";
 import { FiberNode, FiberRootNode, PendingPassiveEffects } from "./fiber";
-import { ChildDeletion, Flags, LayoutMask, MutationMask, NoFlags, PassiveEffect, Placement, Ref, Update } from "./fiberFlags";
+import { ChildDeletion, Flags, LayoutMask, MutationMask, NoFlags, PassiveEffect, Placement, Ref, Update, Visibility } from "./fiberFlags";
 import { FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
 import { Effect, FCUpdateQueue } from "./fiberHooks";
 import { HookHasEffect } from "./hookEffectTags";
@@ -67,15 +67,33 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode, root: FiberRootNo
         finishedWork.flags &= ~PassiveEffect
     }
 
-    if((flags & Ref) !== NoFlags && tag === HostComponent) {
-            safelyDetachRef(finishedWork)
+    if ((flags & Ref) !== NoFlags && tag === HostComponent) {
+        safelyDetachRef(finishedWork)
     }
+
+    if ((finishedWork.flags & Visibility) !== NoFlags) {
+        const isHidden = finishedWork.memoizedProps.mode === 'hidden';
+        hideOrShowOffscreenResultInTree(finishedWork, isHidden);
+        finishedWork.flags &= ~Visibility;
+    }
+}
+
+function hideOrShowOffscreenResultInTree(fiber: FiberNode, isHidden: boolean) {
+    const hostSibling = getHostSibling(fiber); 
+    if (hostSibling) {
+        // 这里的 getHostSibling 可能需要改造一下，或者写个专门的 findHostNodes
+        // 简单版：假设 Offscreen 下面只有一个 Host 节点
+        // 实际上 React 源码这里会处理的很复杂，因为可能是多个 Host 节点
+        hostSibling.style.display = isHidden ? 'none' : 'block'; 
+    }
+    
+    // 严谨的实现需要遍历 Offscreen 的子树，找到所有顶层 Host 节点修改 display
 }
 
 function safelyDetachRef(current: FiberNode) {
     const ref = current.ref
-    if(ref !== null) {
-        if(typeof ref === 'function') {
+    if (ref !== null) {
+        if (typeof ref === 'function') {
             ref(null)
         } else {
             ref.current = null

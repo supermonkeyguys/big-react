@@ -21,6 +21,11 @@ export default [
         ],
         external: [...Object.keys(peerDependencies), 'scheduler'],
         plugins: [
+            alias({
+                entries: {
+                    hostConfig: `${pkgPath}/src/hostConfig.ts`
+                }
+            }),
             ...getBaseRollupPlugins({
                 typescript: {
                     exclude: ['./packages/react-dom/**/*'],
@@ -31,11 +36,6 @@ export default [
                             }
                         }
                     }
-                }
-            }),
-            alias({
-                entries: {
-                    hostConfig: `${pkgPath}/src/hostConfig.ts`
                 }
             }),
             generatePackageJson({

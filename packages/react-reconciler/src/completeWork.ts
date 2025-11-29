@@ -1,9 +1,10 @@
 import { appendInitialChild, Container, createInstance, createTextInstance, Instance } from "hostConfig";
 import { FiberNode } from "./fiber";
-import { NoFlags, Ref, Update } from "./fiberFlags";
-import { ContextProvider, Fragment, FunctionComponent, HostComponent, HostRoot, HostText } from "./workTags";
+import { NoFlags, Ref, Update, Visibility } from "./fiberFlags";
+import { ContextProvider, Fragment, FunctionComponent, HostComponent, HostRoot, HostText, OffscreenComponent, SuspenseComponent } from "./workTags";
 import { updateFiberProps } from "react-dom/src/SyntheticEvent";
 import { popProvider } from "./fiberContext";
+import { popSuspenseHandler } from "./suspenseContext";
 
 function markUpdate(fiber: FiberNode) {
     fiber.flags |= Update
@@ -56,14 +57,36 @@ export const completeWork = (wip: FiberNode) => {
             bubbleProperties(wip)
             return null
         case HostRoot:
-        case Fragment:
         case FunctionComponent:
+        case Fragment:
+        case OffscreenComponent:
             bubbleProperties(wip)
             return null
         case ContextProvider:
             const context = wip.type._context
             popProvider(context)
             bubbleProperties(wip)
+        case SuspenseComponent:
+            popSuspenseHandler();
+
+            const offscreenFiber = wip.child as FiberNode;
+            const isHidden = offscreenFiber.pendingProps.mode === 'hidden';
+            const currentOffscreenFiber = offscreenFiber.alternate;
+            if (currentOffscreenFiber !== null) {
+                const wasHidden = currentOffscreenFiber.pendingProps.mode === 'hidden';
+
+                if (isHidden !== wasHidden) {
+                    // 可见性变化
+                    offscreenFiber.flags |= Visibility;
+                    bubbleProperties(offscreenFiber);
+                }
+            } else if (isHidden) {
+                // mount时hidden
+                offscreenFiber.flags |= Visibility;
+                bubbleProperties(offscreenFiber);
+            }
+            bubbleProperties(wip);
+            return null;
         default:
             return null
     }

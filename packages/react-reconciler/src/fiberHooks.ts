@@ -11,7 +11,7 @@ import currentBatchConfig from "react/src/currentBatchConfig";
 
 // 全局指针
 let currentlyRenderingFiber: FiberNode | null = null;
-let workInprogressHook: Hook | null = null; // 指向当前正在处理的 Hook
+let workInProgressHook: Hook | null = null; // 指向当前正在处理的 Hook
 let currentHook: Hook | null = null
 let renderLane: Lane = NoLane
 
@@ -68,7 +68,7 @@ export function renderWithHooks(wip: FiberNode, lane: Lane) {
     // 重置操作
     // currentlyRenderingFiber = null;
     currentlyRenderingFiber = null
-    workInprogressHook = null; // 执行完也重置
+    workInProgressHook = null; // 执行完也重置
     currentHook = null
     renderLane = NoLane
     return children;
@@ -243,20 +243,20 @@ function updateWorkInProgressHook(): Hook {
         baseQueue: currentHook.baseQueue,
     }
 
-    if (workInprogressHook === null) {
+    if (workInProgressHook === null) {
         // mount 时 第一个 hook
         if (currentlyRenderingFiber === null) {
             throw new Error('请在函数组件内调用hook')
         } else {
-            workInprogressHook = newHook
-            currentlyRenderingFiber.memoizedState = workInprogressHook
+            workInProgressHook = newHook
+            currentlyRenderingFiber.memoizedState = workInProgressHook
         }
     } else {
-        workInprogressHook.next = newHook
-        workInprogressHook = newHook
+        workInProgressHook.next = newHook
+        workInProgressHook = newHook
     }
 
-    return workInprogressHook
+    return workInProgressHook
 }
 
 function mountState<State>(initialState: (() => State) | State): [State, Dispatch<State>] {
@@ -386,21 +386,27 @@ function mountWorkInProgressHook(): Hook {
         baseQueue: null,
     };
 
-    if (workInprogressHook === null) {
+    if (workInProgressHook === null) {
         // 这是链表的第一个 hook
         if (currentlyRenderingFiber === null) {
             throw new Error('请在函数组件内使用 hook');
         } else {
-            workInprogressHook = hook;
+            workInProgressHook = hook;
             // 将头节点挂在 Fiber 上
-            currentlyRenderingFiber.memoizedState = workInprogressHook;
+            currentlyRenderingFiber.memoizedState = workInProgressHook;
         }
     } else {
         // 这是后续的 hook，接在链表尾部
-        workInprogressHook.next = hook;
+        workInProgressHook.next = hook;
         // 指针后移
-        workInprogressHook = hook;
+        workInProgressHook = hook;
     }
 
     return hook;
+}
+
+export function resetHooksOnUnwind(wip: FiberNode) {
+	currentlyRenderingFiber = null;
+	currentHook = null;
+	workInProgressHook = null;
 }

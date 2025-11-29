@@ -1,5 +1,5 @@
-import { Key, Props, ReactElementType, Ref } from "shared/ReactTypes"
-import { ContextProvider, Fragment, FunctionComponent, HostComponent, WorkTag } from "./workTags"
+import { Key, Props, ReactElementType, Ref, Wakeable } from "shared/ReactTypes"
+import { ContextProvider, Fragment, FunctionComponent, HostComponent, OffscreenComponent, WorkTag } from "./workTags"
 import { Flags, NoFlags } from "./fiberFlags"
 import { Container } from "hostConfig"
 import { Lane, Lanes, NoLane, NoLanes } from "./fiberLanes"
@@ -70,6 +70,11 @@ export interface PendingPassiveEffects {
     update: Effect[]
 }
 
+export interface OffscreenProps {
+	mode: 'visible' | 'hidden';
+	children: any;
+}
+
 export class FiberRootNode {
     container: Container
     current: FiberNode
@@ -80,6 +85,9 @@ export class FiberRootNode {
 
     callbackNode: CallbackNode | null
     callbackPriority: Lane
+    pingCache: WeakMap<Wakeable<any>, Set<Lane>> | null
+    pingedLanes: Lanes
+    suspendedLanes: Lanes
 
     constructor(container: Container, hostRootFiber: FiberNode) {
         this.container = container
@@ -87,6 +95,8 @@ export class FiberRootNode {
         hostRootFiber.stateNode = this
         this.finishedWork = null
         this.pendingLanes = NoLanes
+        this.suspendedLanes = NoLanes;
+        this.pingedLanes = NoLanes;
         this.finishedLane = NoLane
 
         this.callbackNode = null
@@ -96,6 +106,8 @@ export class FiberRootNode {
             unmount: [],
             update: []
         }
+
+        this.pingCache = null
     }
 }
 
@@ -155,4 +167,10 @@ export function createFiberFromFragment(elements: any[], key: Key): FiberNode {
     const fiber = new FiberNode(Fragment, elements, key)
 
     return fiber
+}
+
+export function createFiberFromOffscreen(pendingProps: OffscreenProps) {
+	const fiber = new FiberNode(OffscreenComponent, pendingProps, null);
+	// TODO stateNode
+	return fiber;
 }

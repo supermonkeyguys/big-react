@@ -1,4 +1,5 @@
 import React from 'react'
+console.log(React)
 import { createContext, useContext } from 'react';
 import ReactDOM from 'react-dom/client';
 

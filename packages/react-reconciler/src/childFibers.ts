@@ -172,9 +172,9 @@ function ChildReconciler(shouldTrackEffects: boolean) {
     }
 
     function getElementKeyToUse(element: any, index?: number): Key {
-        if(
+        if (
             Array.isArray(element) ||
-            typeof element === 'string' || 
+            typeof element === 'string' ||
             typeof element === 'number' ||
             element === null ||
             element === undefined
@@ -250,7 +250,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
             typeof newChild === 'object' &&
             newChild !== null &&
             newChild.$$typeof === REACT_ELEMENT_TYPE &&
-            newChild.type === REACT_FRAGMENT_TYPE &&   
+            newChild.type === REACT_FRAGMENT_TYPE &&
             newChild.key === null
 
         if (isUnKeyTopLevelFragment) {
@@ -321,3 +321,24 @@ function updateFragment(
 
 export const reconcilerChildFibers = ChildReconciler(true)
 export const mountChildFibers = ChildReconciler(false)
+
+
+export function cloneChildFibers(wip: FiberNode) {
+    // child  sibling
+    if (wip.child === null) {
+        return;
+    }
+    let currentChild = wip.child;
+    let newChild = createWorkInProgress(currentChild, currentChild.pendingProps);
+    wip.child = newChild;
+    newChild.return = wip;
+
+    while (currentChild.sibling !== null) {
+        currentChild = currentChild.sibling;
+        newChild = newChild.sibling = createWorkInProgress(
+            newChild,
+            newChild.pendingProps
+        );
+        newChild.return = wip;
+    }
+}

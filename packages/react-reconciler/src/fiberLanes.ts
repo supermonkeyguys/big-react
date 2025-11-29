@@ -71,3 +71,16 @@ export function schedulerPriorityToLane(schedulerPriority: number): Lane {
 
     return NoLane
 }
+
+export function markRootPinged(root: FiberRootNode, pingedLane: Lane) {
+	root.pingedLanes |= root.suspendedLanes & pingedLane;
+}
+
+export function markRootSuspended(root: FiberRootNode, suspendedLane: Lane) {
+	root.suspendedLanes |= suspendedLane;
+	root.pingedLanes &= ~suspendedLane;
+}
+
+export function includeSomeLanes(set: Lanes, subset: Lane | Lanes): boolean {
+	return (set & subset) !== NoLanes;
+}

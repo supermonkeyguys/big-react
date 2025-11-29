@@ -1,11 +1,11 @@
 import { Key, Props, ReactElementType, Ref, Wakeable } from "shared/ReactTypes"
-import { ContextProvider, Fragment, FunctionComponent, HostComponent, OffscreenComponent, WorkTag } from "./workTags"
+import { ContextProvider, Fragment, FunctionComponent, HostComponent, OffscreenComponent, SuspenseComponent, WorkTag } from "./workTags"
 import { Flags, NoFlags } from "./fiberFlags"
 import { Container } from "hostConfig"
 import { Lane, Lanes, NoLane, NoLanes } from "./fiberLanes"
 import { Effect } from "./fiberHooks"
 import { CallbackNode } from "scheduler"
-import { REACT_PROVIDER_TYPE } from "shared/ReactSymbols"
+import { REACT_PROVIDER_TYPE, REACT_SUSPENSE_TYPE } from "shared/ReactSymbols"
 
 
 export class FiberNode {
@@ -71,8 +71,8 @@ export interface PendingPassiveEffects {
 }
 
 export interface OffscreenProps {
-	mode: 'visible' | 'hidden';
-	children: any;
+    mode: 'visible' | 'hidden';
+    children: any;
 }
 
 export class FiberRootNode {
@@ -147,6 +147,8 @@ export function createFiberFromElement(element: ReactElementType) {
 
     if (typeof type === 'string') {
         fiberTag = HostComponent
+    } else if (type === REACT_SUSPENSE_TYPE) {
+        fiberTag = SuspenseComponent;
     } else if (
         typeof type === 'object' &&
         type.$$typeof === REACT_PROVIDER_TYPE
@@ -170,7 +172,7 @@ export function createFiberFromFragment(elements: any[], key: Key): FiberNode {
 }
 
 export function createFiberFromOffscreen(pendingProps: OffscreenProps) {
-	const fiber = new FiberNode(OffscreenComponent, pendingProps, null);
-	// TODO stateNode
-	return fiber;
+    const fiber = new FiberNode(OffscreenComponent, pendingProps, null);
+    // TODO stateNode
+    return fiber;
 }

@@ -2,6 +2,7 @@ import { ReactContext } from "shared/ReactTypes";
 import currentBatchConfig from "./src/currentBatchConfig";
 import currentDispatcher, { Dispatcher, resolveDispatcher } from "./src/currentDispatcher";
 import { isValidElement as isValidElementFn, jsx } from "./src/jsx";
+import { REACT_SUSPENSE_TYPE } from "shared/ReactSymbols";
 
 export { createContext } from './src/context'
 
@@ -47,3 +48,4 @@ export const version = '0.0.0'
 // TODO 根据生产环境判断使用 jsx 或 jsxDev
 export const createElement = jsx
 export const isValidElement = isValidElementFn
+export const Suspense = REACT_SUSPENSE_TYPE

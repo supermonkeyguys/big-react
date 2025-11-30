@@ -274,9 +274,9 @@ function mountSuspenseFallbackChildren(
     // 父组件Suspense已经mount，所以需要fallback标记Placement
     fallbackChildFragment.flags |= Placement;
 
-    primaryChildFragment.return = workInProgress;
+    // primaryChildFragment.return = workInProgress;
+    // primaryChildFragment.sibling = fallbackChildFragment;
     fallbackChildFragment.return = workInProgress;
-    primaryChildFragment.sibling = fallbackChildFragment;
     workInProgress.child = primaryChildFragment;
 
     return fallbackChildFragment;
@@ -331,6 +331,7 @@ function updateSuspenseFallbackChildren(
         mode: 'hidden',
         children: primaryChildren
     };
+
     const primaryChildFragment = createWorkInProgress(
         currentPrimaryChildFragment,
         primaryChildProps
@@ -348,9 +349,10 @@ function updateSuspenseFallbackChildren(
         fallbackChildFragment.flags |= Placement;
     }
     fallbackChildFragment.return = workInProgress;
-    primaryChildFragment.return = workInProgress;
-    primaryChildFragment.sibling = fallbackChildFragment;
-    workInProgress.child = primaryChildFragment;
+    // primaryChildFragment.return = workInProgress;
+    // primaryChildFragment.sibling = fallbackChildFragment;
+    workInProgress.child = fallbackChildFragment
+    // workInProgress.child = primaryChildFragment;
 
     return fallbackChildFragment;
 }

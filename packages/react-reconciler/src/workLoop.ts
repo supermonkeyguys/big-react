@@ -226,37 +226,37 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
     }
 
     do {
-		try {
-			if (
-				workInProgressSuspendedReason !== NotSuspended &&
-				workInProgress !== null
-			) {
-				const thrownValue = workInProgressThrownValue;
+        try {
+            if (
+                workInProgressSuspendedReason !== NotSuspended &&
+                workInProgress !== null
+            ) {
+                const thrownValue = workInProgressThrownValue;
 
-				workInProgressSuspendedReason = NotSuspended;
-				workInProgressThrownValue = null;
+                workInProgressSuspendedReason = NotSuspended;
+                workInProgressThrownValue = null;
 
-				throwAndUnwindWorkLoop(root, workInProgress, thrownValue, lane);
-			}
+                throwAndUnwindWorkLoop(root, workInProgress, thrownValue, lane);
+            }
 
-			shouldTimeSlice ? workLoopConcurrent() : workLoopSync();
-			break;
-		} catch (e) {
-			if (__DEV__) {
-				console.warn('workLoop发生错误', e);
-			}
-			count++;
-			if (count > 20) {
+            shouldTimeSlice ? workLoopConcurrent() : workLoopSync();
+            break;
+        } catch (e) {
+            if (__DEV__) {
+                console.warn('workLoop发生错误', e);
+            }
+            count++;
+            if (count > 20) {
                 console.warn('break!');
-				break;
-			}
-			handleThrow(root, e);
-		}
-	} while (true);
+                break;
+            }
+            handleThrow(root, e);
+        }
+    } while (true);
 
     if (workInProgressRootExitStatus !== RootInProgress) {
-		return workInProgressRootExitStatus;
-	}
+        return workInProgressRootExitStatus;
+    }
 
     // 中断执行 || render阶段执行完
     if (shouldTimeSlice && workInProgress !== null) {
@@ -265,7 +265,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 
     // render阶段执行完
     if (!shouldTimeSlice && workInProgress !== null && __DEV__) {
-        console.error(`render阶段完成后 wip 不应该为 null`, workInProgress)
+        console.error(`render阶段完成后 wip 不应该不为 null`, workInProgress)
     }
 
     // TODO 报错情况
@@ -398,38 +398,38 @@ function completeUnitOfWork(fiber: FiberNode) {
 }
 
 function handleThrow(root: FiberRootNode, thrownValue: any): void {
-	/*
-		throw可能的情况
-			1. use thenable
-			2. error (Error Boundary处理)
-	*/
-	if (thrownValue === SuspenseException) {
-		workInProgressSuspendedReason = SuspendedOnData;
-		thrownValue = getSuspenseThenable();
-	} else {
-		const isWakeable =
-			thrownValue !== null &&
-			typeof thrownValue === 'object' &&
-			typeof thrownValue.then === 'function';
+    /*
+        throw可能的情况
+            1. use thenable
+            2. error (Error Boundary处理)
+    */
+    if (thrownValue === SuspenseException) {
+        workInProgressSuspendedReason = SuspendedOnData;
+        thrownValue = getSuspenseThenable();
+    } else {
+        const isWakeable =
+            thrownValue !== null &&
+            typeof thrownValue === 'object' &&
+            typeof thrownValue.then === 'function';
 
-		workInProgressThrownValue = thrownValue;
-		workInProgressSuspendedReason = isWakeable
-			? SuspendedOnDeprecatedThrowPromise
-			: SuspendedOnError;
-	}
-	workInProgressThrownValue = thrownValue;
+        workInProgressThrownValue = thrownValue;
+        workInProgressSuspendedReason = isWakeable
+            ? SuspendedOnDeprecatedThrowPromise
+            : SuspendedOnError;
+    }
+    workInProgressThrownValue = thrownValue;
 }
 
 function throwAndUnwindWorkLoop(
-	root: FiberRootNode,
-	unitOfWork: FiberNode,
-	thrownValue: any,
-	lane: Lane
+    root: FiberRootNode,
+    unitOfWork: FiberNode,
+    thrownValue: any,
+    lane: Lane
 ) {
-	// unwind前的重置hook，避免 hook0 use hook1 时 use造成中断，再恢复时前后hook对应不上
-	resetHooksOnUnwind(unitOfWork);
-	throwException(root, thrownValue, lane);
-	unwindUnitOfWork(unitOfWork);
+    // unwind前的重置hook，避免 hook0 use hook1 时 use造成中断，再恢复时前后hook对应不上
+    resetHooksOnUnwind(unitOfWork);
+    throwException(root, thrownValue, lane);
+    unwindUnitOfWork(unitOfWork);
 }
 
 function unwindUnitOfWork(unitOfWork: FiberNode) {

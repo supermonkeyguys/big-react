@@ -18,7 +18,8 @@ export function markWipReceivedUpdate() {
 
 
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
-
+    // 在 beginWork 函数开头
+    console.log('beginWork:', wip.type, 'lanes:', wip.lanes, 'childLanes:', wip.childrenLanes);
     // bailout策略
     didReceiveUpdate = false;
     const current = wip.alternate;
@@ -26,9 +27,7 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
     if (current !== null) {
         const oldProps = current.memoizedProps;
         const newProps = wip.pendingProps;
-        // 四要素～ props type
-        // {num: 0, name: 'cpn2'}
-        // {num: 0, name: 'cpn2'}
+
         if (oldProps !== newProps || current.type !== wip.type) {
             didReceiveUpdate = true;
         } else {
@@ -37,7 +36,8 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
                 current,
                 renderLane
             );
-            if (!hasScheduledStateOrContext) {
+
+            if (!hasScheduledStateOrContext && (wip.flags & DidCapture) === NoFlags) {
                 // 四要素～ state context
                 // 命中bailout
                 didReceiveUpdate = false;
@@ -200,8 +200,11 @@ function updateOffscreenComponent(workInProgress: FiberNode) {
     const nextChildren = nextProps.children;
     const current = workInProgress.alternate;
 
-    if (current !== null && nextProps.mode !== current.memoizedProps.mode) {
-        workInProgress.flags |= Visibility;
+    if (current !== null) {
+        const prevProps = current.memoizedProps || current.pendingProps
+        if (nextProps.mode !== prevProps.mode) {
+            workInProgress.flags |= Visibility;
+        }
     }
 
     reconcilerChildren(workInProgress, nextChildren);
@@ -274,8 +277,8 @@ function mountSuspenseFallbackChildren(
     // 父组件Suspense已经mount，所以需要fallback标记Placement
     fallbackChildFragment.flags |= Placement;
 
-    // primaryChildFragment.return = workInProgress;
-    // primaryChildFragment.sibling = fallbackChildFragment;
+    primaryChildFragment.return = workInProgress;
+    primaryChildFragment.sibling = fallbackChildFragment;
     fallbackChildFragment.return = workInProgress;
     workInProgress.child = primaryChildFragment;
 

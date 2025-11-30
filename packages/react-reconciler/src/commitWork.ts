@@ -72,7 +72,9 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode, root: FiberRootNo
     }
 
     if ((finishedWork.flags & Visibility) !== NoFlags) {
-        const isHidden = finishedWork.memoizedProps.mode === 'hidden';
+        const props = finishedWork.memoizedProps || finishedWork.pendingProps
+        const isHidden = props.mode === 'hidden';
+
         hideOrShowOffscreenResultInTree(finishedWork, isHidden);
         finishedWork.flags &= ~Visibility;
     }

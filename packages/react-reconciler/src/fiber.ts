@@ -137,6 +137,9 @@ export const createWorkInProgress = (current: FiberNode, pendingProps: Props): F
     wip.memoizedState = current.memoizedState
     wip.ref = current.ref
 
+    wip.lanes = current.lanes
+    wip.childrenLanes = current.childrenLanes
+
     return wip
 }
 

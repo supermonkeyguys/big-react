@@ -66,6 +66,7 @@ export const completeWork = (wip: FiberNode) => {
             const context = wip.type._context
             popProvider(context)
             bubbleProperties(wip)
+            return null
         case SuspenseComponent:
             popSuspenseHandler();
 

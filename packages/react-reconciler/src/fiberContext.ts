@@ -7,10 +7,9 @@ let prevContextValue: any = null
 
 // beginWork
 export function pushProvider<T>(context: ReactContext<T>, newValue: T) {
-    prevContextValue.push(prevContextValue)
+    prevContextValuesStack.push(prevContextValue)
 
     prevContextValue = context._currentValue
-
     context._currentValue = newValue
 }
 

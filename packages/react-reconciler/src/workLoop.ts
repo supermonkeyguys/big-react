@@ -60,9 +60,11 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
     // 调度功能
     // fiberRootNode
-    const root = markUpdateFromFiberToRoot(fiber)
-    markRootUpdated(root, lane)
-    ensureRootIsScheduler(root)
+    const root = markUpdateFromFiberToRoot(fiber, lane)
+    if (root !== null) {
+        markRootUpdated(root, lane)
+        ensureRootIsScheduler(root)
+    }
 }
 
 export function ensureRootIsScheduler(root: FiberRootNode) {
@@ -119,10 +121,17 @@ export function markRootUpdated(root: FiberRootNode, lane: Lane) {
     root.pendingLanes = mergeLanes(root.pendingLanes, lane)
 }
 
-function markUpdateFromFiberToRoot(fiber: FiberNode) {
+function markUpdateFromFiberToRoot(fiber: FiberNode, lane: Lane) {
     let node = fiber
+    node.lanes = mergeLanes(node.lanes, lane)
+
     let parent = node.return
     while (parent !== null) {
+        parent.childrenLanes = mergeLanes(parent.childrenLanes, lane)
+        const alternate = parent.alternate
+        if (alternate !== null) {
+            alternate.childrenLanes = mergeLanes(alternate.lanes, lane)
+        }
         node = parent
         parent = node.return
     }
@@ -446,7 +455,7 @@ function unwindUnitOfWork(unitOfWork: FiberNode) {
 
         const returnFiber = incompleteWork.return as FiberNode
         if (returnFiber !== null) {
-            return returnFiber.deletions = null
+            returnFiber.deletions = null
         }
 
         incompleteWork = returnFiber
